@@ -45,7 +45,7 @@ mkApp =
   serve (Proxy :: Proxy GenericASTAPI) server
   where 
     policy = simpleCorsResourcePolicy 
-              { corsRequestHeaders = [ "content-type" ] 
+              { corsRequestHeaders = [ "content-type", "Access-Control-Allow-Origin" ] 
               , corsMethods = [ "GET", "POST"]
               }
 
