@@ -15,6 +15,7 @@ import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant
 import System.IO
+import System.Environment
 import Network.Wai.Middleware.Cors
 import Network.Wai.Middleware.Servant.Options
 
@@ -28,7 +29,7 @@ type GenericASTAPI =
 
 run :: IO ()
 run = do
-  port <- read <$> getEnv “PORT”
+  port <- read <$> getEnv "PORT"
   let settings =
         setPort port $
         setBeforeMainLoop (hPutStrLn stderr ("listening on port " ++ show port)) $
