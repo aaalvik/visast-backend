@@ -1,0 +1,37 @@
+name: haskell-backend
+
+ghc-options: -Wall
+
+# tests:
+#   spec:
+#     main: Spec.hs
+#     source-dirs:
+#       - test
+#     dependencies:
+#       - hspec
+#       - haskell-backend
+#       - servant-client
+#       - warp >= 3.2.4
+#       - http-client
+#       - http-types
+
+library:
+  source-dirs:
+    - src
+
+executables:
+  haskell-backend:
+    main: exe/Main.hs
+    dependencies:
+      - haskell-backend
+
+dependencies:
+  - base
+  - servant
+  - servant-server
+  - servant-options
+  - transformers
+  - aeson
+  - wai
+  - wai-cors
+  - warp

@@ -1,0 +1,1 @@
+web: haskell-backend
