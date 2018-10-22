@@ -15,6 +15,8 @@ import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant
 import System.IO
+import System.Environment (lookupEnv)
+import Data.Maybe (fromMaybe)
 import Network.Wai.Middleware.Cors
 import Network.Wai.Middleware.Servant.Options
 
@@ -28,11 +30,11 @@ type GenericASTAPI =
 
 run :: IO ()
 run = do
+  port <- fmap (fromMaybe "3000") (lookupEnv "PORT")
   let 
-    port = 3000
     settings =
-        setPort port $
-        setBeforeMainLoop (hPutStrLn stderr ("listening on port " ++ show port)) $
+        setPort (read port) $
+        setBeforeMainLoop (hPutStrLn stderr ("listening on port " ++ port)) $
         defaultSettings
   runSettings settings =<< mkApp
 

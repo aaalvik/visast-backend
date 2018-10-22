@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8042110742f2ba9739e04243487af78e0230f973bb470a63ba6ce2418ad01482
+-- hash: 3d69fc3c72c5655be70466a3282f6cbfc55435d11e6c14e9f2c96f60d29b1d16
 
 name:           haskell-backend
 version:        0.0.0
@@ -12,6 +12,7 @@ cabal-version:  >= 1.10
 library
   exposed-modules:
       App
+      Client
       TestLanguage.Convert
       TestLanguage.Evaluator
       TestLanguage.Parser
@@ -26,7 +27,9 @@ library
   build-depends:
       aeson
     , base
+    , http-client
     , servant
+    , servant-client
     , servant-options
     , servant-server
     , transformers
@@ -44,7 +47,9 @@ executable haskell-backend
       aeson
     , base
     , haskell-backend
+    , http-client
     , servant
+    , servant-client
     , servant-options
     , servant-server
     , transformers

@@ -30,6 +30,8 @@ dependencies:
   - servant
   - servant-server
   - servant-options
+  - servant-client
+  - http-client
   - transformers
   - aeson
   - wai
