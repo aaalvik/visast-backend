@@ -11,6 +11,7 @@ import Types
 import TestLanguage.Evaluator as Evaluator
 import TestLanguage.Parser as Parser 
 import TestLanguage.Convert as Convert 
+import TestLanguage.TestTypes as TestTypes (Expr)
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant
@@ -22,9 +23,9 @@ import Network.Wai.Middleware.Servant.Options
 
 -- * API
 
-type GenericASTAPI =
-  "steps" :> ReqBody '[JSON] InputString :> Post '[JSON] [GenericAST]
-
+type API = "steps" :> ReqBody '[JSON] InputString :> Post '[JSON] [GenericAST]
+      :<|> "stepsFromStudent" :> ReqBody '[JSON] StepsWithKey :> Post '[JSON] ResponseMsg
+  
 
 -- * APP
 
@@ -43,8 +44,8 @@ mkApp :: IO Application
 mkApp = 
   return $ 
   cors (const $ Just policy) $
-  provideOptions (Proxy :: Proxy GenericASTAPI) $
-  serve (Proxy :: Proxy GenericASTAPI) server
+  provideOptions (Proxy :: Proxy API) $
+  serve (Proxy :: Proxy API) server
   where 
     policy = simpleCorsResourcePolicy 
               { corsRequestHeaders = [ "content-type", "Access-Control-Allow-Origin" ] 
@@ -58,7 +59,15 @@ handlerSteps inputStr = do
       startExpr = Parser.parse s
       steps = Evaluator.eval startExpr 
   return $ map Convert.toGeneric steps
-    
 
-server :: Server GenericASTAPI
-server = handlerSteps
+
+handlerStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
+handlerStepsFromStudent stepsWithKey = do
+  let evSteps = evalSteps stepsWithKey
+      studentKey = key stepsWithKey
+  -- TODO save in map of <key, evSteps> 
+  return $ ResponseMsg { resStr = "Success"}
+
+
+server :: Server API
+server = handlerSteps :<|> handlerStepsFromStudent 

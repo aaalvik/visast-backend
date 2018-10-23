@@ -3,6 +3,10 @@ module TestLanguage.Parser where
 import Data.Char
 import TestLanguage.TestTypes
 
+{- Grammatikk for språket Expr :
+S -> + S S | * S S | - S | if S then S else S | A 
+A -> number
+-}
 
 parse :: String -> Expr 
 parse str = 
