@@ -57,8 +57,11 @@ mkApp =
 handlerSteps :: InputString -> Handler [GenericAST]
 handlerSteps inputStr = do
   let s = str inputStr 
-      startExpr = Parser.parse s
-      steps = Evaluator.eval startExpr 
+      mStartExpr = Parser.parse s
+      steps = case mStartExpr of 
+        Just expr -> 
+          Evaluator.eval expr
+        Nothing -> []
   return $ map Convert.toGeneric steps
 
 
@@ -75,7 +78,9 @@ handlerGetStepsFromStudent mKey =
   case mKey of 
     Nothing -> return []
     Just sKey ->
-      return [ GenericAST "Num 12345" [] ]
+      if sKey == "raa009" then 
+        return [ GenericAST "Num 1" [] ]
+      else return [] -- error
       -- TODO lookup in map 
 
 

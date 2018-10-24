@@ -8,13 +8,16 @@ S -> + S S | * S S | - S | if S then S else S | A
 A -> number
 -}
 
-parse :: String -> Expr 
+
+parse :: String -> Maybe Expr 
 parse str = 
     let 
         tokens = tokenize str 
-        (expr, rest) = parseExpr tokens
-    in if null rest then expr 
-    else error $ "Parsing didn't finish, stopped at: " ++ unwords rest 
+    in 
+        case parseExpr tokens of 
+            (Just expr, []) -> 
+                Just expr 
+            _ -> Nothing -- parsing failed somehow
 
 
 tokenize :: String -> [String]
@@ -22,37 +25,47 @@ tokenize str = words str
 -- TODO: Fiks denne for å slippe mellomrom mellom alt 
 
 
-parseExpr :: [String] -> (Expr, [String])
+parseExpr :: [String] -> (Maybe Expr, [String])
 parseExpr (x:xs) | all isDigit x = 
-    (Num $ read x, xs)
+    (Just $ Num $ read x, xs)
 
 parseExpr ("+":xs) =
     let 
-        (e1, rest) = parseExpr xs 
-        (e2, rest') = parseExpr rest 
-    in (Add e1 e2, rest')
+        (me1, rest) = parseExpr xs 
+        (me2, rest') = parseExpr rest 
+    in 
+        case (me1, me2) of 
+            (Just e1, Just e2) -> 
+                (Just $ Add e1 e2, rest')
+            _ -> (Nothing, [])
 
 parseExpr ("*":xs) =
     let 
-        (e1, rest) = parseExpr xs 
-        (e2, rest') = parseExpr rest 
-    in (Mult e1 e2, rest')
+        (me1, rest) = parseExpr xs 
+        (me2, rest') = parseExpr rest 
+    in 
+        case (me1, me2) of 
+            (Just e1, Just e2) -> 
+                (Just $ Mult e1 e2, rest')
+            _ -> (Nothing, [])
 
 parseExpr ("-":xs) = 
     let 
-        (e, rest) = parseExpr xs 
-    in (Neg e, rest)
+        (me, rest) = parseExpr xs 
+    in 
+        (fmap Neg me, rest)
 
 parseExpr ("if":xs) = 
     let 
-        (eCond, restCond) = parseExpr xs                -- rest should start with "then"
-        (eThen, restThen) = parseExpr $ tail restCond   -- rest should start with "else"
-        (eElse, restElse) = parseExpr $ tail restThen
+        (meCond, restCond) = parseExpr xs                -- rest should start with "then"
+        (meThen, restThen) = parseExpr $ tail restCond   -- rest should start with "else"
+        (meElse, restElse) = parseExpr $ tail restThen
     in 
-    case (head restCond, head restThen) of 
-        ("then", "else") -> 
-            (If eCond eThen eElse, restElse)
-        _ -> 
-            error "parseExpr error: if-expression lacks then/else keyword"
+        case (meCond, meThen, meElse) of 
+            (Just eCond, Just eThen, Just eElse) ->
+                if head restCond == "then" && head restThen == "else" then 
+                    (Just $ If eCond eThen eElse, restElse)
+                else (Nothing, [])
+            _ -> (Nothing, [])
 
-parseExpr e = error $ "parseExpr error: expression doesn't match any rules" ++ show e
+parseExpr e = (Nothing, [])
