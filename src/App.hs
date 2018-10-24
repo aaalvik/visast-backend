@@ -24,7 +24,8 @@ import Network.Wai.Middleware.Servant.Options
 -- * API
 
 type API = "steps" :> ReqBody '[JSON] InputString :> Post '[JSON] [GenericAST]
-      :<|> "stepsFromStudent" :> ReqBody '[JSON] StepsWithKey :> Post '[JSON] ResponseMsg
+      :<|> "putStepsFromStudent" :> ReqBody '[JSON] StepsWithKey :> Post '[JSON] ResponseMsg
+      :<|> "getStepsFromStudent" :> QueryParam "studentKey" String :> Get '[JSON] [GenericAST]
   
 
 -- * APP
@@ -61,13 +62,22 @@ handlerSteps inputStr = do
   return $ map Convert.toGeneric steps
 
 
-handlerStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
-handlerStepsFromStudent stepsWithKey = do
+handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
+handlerPutStepsFromStudent stepsWithKey = do
   let evSteps = evalSteps stepsWithKey
       studentKey = key stepsWithKey
   -- TODO save in map of <key, evSteps> 
-  return $ ResponseMsg { resStr = "Success"}
+  return $ ResponseMsg "Success"
+
+
+handlerGetStepsFromStudent :: Maybe String -> Handler [GenericAST]
+handlerGetStepsFromStudent mKey = 
+  case mKey of 
+    Nothing -> return []
+    Just sKey ->
+      return [ GenericAST "Num 12345" [] ]
+      -- TODO lookup in map 
 
 
 server :: Server API
-server = handlerSteps :<|> handlerStepsFromStudent 
+server = handlerSteps :<|> handlerPutStepsFromStudent :<|> handlerGetStepsFromStudent 
