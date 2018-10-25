@@ -20,6 +20,8 @@ import System.Environment (lookupEnv)
 import Data.Maybe (fromMaybe)
 import Network.Wai.Middleware.Cors
 import Network.Wai.Middleware.Servant.Options
+import Control.Monad.IO.Class
+import Database.PostgreSQL.Simple
 
 -- * API
 
@@ -64,13 +66,19 @@ handlerSteps inputStr = do
         Nothing -> []
   return $ map Convert.toGeneric steps
 
+{-
+To run IO inside Handlers, just use 'liftIO': 
+  filecontent <- liftIO (readFile "myfile.txt")
+-}
 
 handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
 handlerPutStepsFromStudent stepsWithKey = do
+  dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL") -- IO String
+  -- dbConnection <- liftIO $ connectPostgreSQL dbUrl 
+  -- TODO Fix
   let evSteps = evalSteps stepsWithKey
       studentKey = key stepsWithKey
-  -- TODO save in map of <key, evSteps> 
-  return $ ResponseMsg "Success"
+  return $ ResponseMsg dbUrl
 
 
 handlerGetStepsFromStudent :: Maybe String -> Handler [GenericAST]

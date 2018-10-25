@@ -37,3 +37,6 @@ dependencies:
   - wai
   - wai-cors
   - warp
+  - containers
+  - unordered-containers
+  - postgresql-simple
