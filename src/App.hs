@@ -24,6 +24,7 @@ import Control.Monad.IO.Class
 import qualified Data.ByteString.Char8 as ByteString
 import Database.PostgreSQL.Simple
 import GHC.Int
+import qualified Data.Text as Text
 
 -- * API
 
@@ -68,31 +69,13 @@ handlerSteps inputStr = do
         Nothing -> []
   return $ map Convert.toGeneric steps
 
-{-
-To run IO inside Handlers, just use 'liftIO': 
-  filecontent <- liftIO (readFile "myfile.txt")
+{- Tabell: StudentSteps ( Key varchar(255), Steps TEXT ); -}
 
-Run queries (SELECT): 
-query conn "select ? + ?" (40,2)
-
-Run INSERTs:
-execute :: ToRow q => Connection -> Query -> q -> IO Int64
--}
 
 insertSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
 insertSteps conn key steps = do 
   let queryStr = "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?) ON CONFLICT (Key) DO UPDATE SET Steps = ?;"
   execute conn queryStr (key :: String, show steps :: String, show steps :: String)
-
-{-
-Tabell: StudentSteps ( Key varchar(255), Steps TEXT );
-
-INSERT INTO the_table (id, column_1, column_2) 
-VALUES (1, 'A', 'X'), (2, 'B', 'Y'), (3, 'C', 'Z')
-ON CONFLICT (id) DO UPDATE 
-  SET column_1 = excluded.column_1, 
-      column_2 = excluded.column_2;
--}
 
 
 handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
@@ -110,15 +93,31 @@ handlerPutStepsFromStudent stepsWithKey = do
   else return $ ResponseMsg "Failure"
 
 
+queryGetSteps :: Connection -> String -> IO [GenericAST]
+queryGetSteps conn key = do 
+  let queryStr = "SELECT Steps FROM StudentSteps WHERE Key = ?"
+  stepsStringList <- query conn queryStr [key]
+
+  if null stepsStringList then 
+    return [] 
+  else do 
+    let steps = read $ Text.unpack $ head stepsStringList :: [GenericAST]
+    return steps 
+    -- I only case about first entry, should only be one 
+
+
 handlerGetStepsFromStudent :: Maybe String -> Handler [GenericAST]
 handlerGetStepsFromStudent mKey = 
   case mKey of 
     Nothing -> return []
-    Just sKey ->
-      if sKey == "raa009" then 
-        return [ GenericAST "Num 1" [] ]
-      else return [] -- error
-      -- TODO lookup in map 
+    Just sKey -> do 
+      dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
+      dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
+
+      steps <- liftIO $ queryGetSteps dbConnection sKey 
+      return steps
+      -- if sKey == "raa009" then 
+      --   return [ GenericAST "Num 1" [] ]
 
 
 server :: Server API

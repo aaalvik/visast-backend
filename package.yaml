@@ -41,3 +41,4 @@ dependencies:
   - unordered-containers
   - postgresql-simple
   - bytestring
+  - text

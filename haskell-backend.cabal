@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5cd752c1d20837a49003f884baae3394a729ead339e54268d4c5341369e4f3af
+-- hash: d059af4ea502d1bc717b34001be34886c099e5d3b00cf92ac8e4c53affee3015
 
 name:           haskell-backend
 version:        0.0.0
@@ -33,6 +33,7 @@ library
     , servant-client
     , servant-options
     , servant-server
+    , text
     , transformers
     , unordered-containers
     , wai
@@ -57,6 +58,7 @@ executable haskell-backend
     , servant-client
     , servant-options
     , servant-server
+    , text
     , transformers
     , unordered-containers
     , wai
