@@ -21,8 +21,14 @@ parse str =
 
 
 tokenize :: String -> [String]
-tokenize str = words str 
--- TODO: Fiks denne for å slippe mellomrom mellom alt 
+tokenize [] = [] 
+tokenize (' ':xs) = tokenize xs 
+tokenize s@(x:xs) 
+    | elem x "+*-" = [x] : tokenize xs 
+    | isDigit x = (takeWhile isDigit s) : tokenize (dropWhile isDigit s)
+tokenize ('i':'f':xs) = "if" : tokenize xs 
+tokenize ('t':'h':'e':'n':xs) = "then" : tokenize xs 
+tokenize ('e':'l':'s':'e':xs) = "else" : tokenize xs 
 
 
 parseExpr :: [String] -> (Maybe Expr, [String])
