@@ -75,15 +75,16 @@ handlerSteps inputStr = do
 
 queryInsertSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
 queryInsertSteps conn key steps = do 
-  let queryStr = "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?) ON CONFLICT (Key) DO UPDATE SET Steps = ?;"
-  execute conn queryStr (key :: String, show steps :: String, show steps :: String)
+  let queryStr = "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?);"
+    -- "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?) ON CONFLICT (Key) DO UPDATE SET Steps = ?;"
+  execute conn queryStr (key :: String, show steps :: String)
 
 
 handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
 handlerPutStepsFromStudent stepsWithKey = do
   let evSteps = evalSteps stepsWithKey
       studentKey = key stepsWithKey
-  dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL") -- IO String
+  dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
   dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
   rowsAffected <- liftIO $ queryInsertSteps dbConnection studentKey evSteps
@@ -91,7 +92,7 @@ handlerPutStepsFromStudent stepsWithKey = do
 
   if rowsAffected == 1 then 
     return $ ResponseMsg "Success"
-  else return $ ResponseMsg "Failure"
+  else return $ ResponseMsg dbUrl --"Failure"
 
 
 queryGetSteps :: Connection -> String -> IO [GenericAST]
