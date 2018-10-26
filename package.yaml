@@ -40,3 +40,4 @@ dependencies:
   - containers
   - unordered-containers
   - postgresql-simple
+  - bytestring

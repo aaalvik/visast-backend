@@ -21,6 +21,7 @@ import Data.Maybe (fromMaybe)
 import Network.Wai.Middleware.Cors
 import Network.Wai.Middleware.Servant.Options
 import Control.Monad.IO.Class
+import qualified Data.ByteString.Char8 as ByteString
 import Database.PostgreSQL.Simple
 
 -- * API
@@ -74,11 +75,11 @@ To run IO inside Handlers, just use 'liftIO':
 handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
 handlerPutStepsFromStudent stepsWithKey = do
   dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL") -- IO String
-  -- dbConnection <- liftIO $ connectPostgreSQL dbUrl 
+  dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
   -- TODO Fix
   let evSteps = evalSteps stepsWithKey
       studentKey = key stepsWithKey
-  return $ ResponseMsg dbUrl
+  return $ ResponseMsg "Success"
 
 
 handlerGetStepsFromStudent :: Maybe String -> Handler [GenericAST]
