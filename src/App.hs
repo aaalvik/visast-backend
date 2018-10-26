@@ -25,6 +25,7 @@ import qualified Data.ByteString.Char8 as ByteString
 import Database.PostgreSQL.Simple
 import GHC.Int
 import qualified Data.Text as Text
+import Control.Monad
 
 -- * API
 
@@ -72,8 +73,8 @@ handlerSteps inputStr = do
 {- Tabell: StudentSteps ( Key varchar(255), Steps TEXT ); -}
 
 
-insertSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
-insertSteps conn key steps = do 
+queryInsertSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
+queryInsertSteps conn key steps = do 
   let queryStr = "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?) ON CONFLICT (Key) DO UPDATE SET Steps = ?;"
   execute conn queryStr (key :: String, show steps :: String, show steps :: String)
 
@@ -85,7 +86,7 @@ handlerPutStepsFromStudent stepsWithKey = do
   dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL") -- IO String
   dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
-  rowsAffected <- liftIO $ insertSteps dbConnection studentKey evSteps
+  rowsAffected <- liftIO $ queryInsertSteps dbConnection studentKey evSteps
   liftIO $ close dbConnection
 
   if rowsAffected == 1 then 
@@ -96,13 +97,13 @@ handlerPutStepsFromStudent stepsWithKey = do
 queryGetSteps :: Connection -> String -> IO [GenericAST]
 queryGetSteps conn key = do 
   let queryStr = "SELECT Steps FROM StudentSteps WHERE Key = ?"
-  stepsStringList <- query conn queryStr [key]
+  xs <- query conn queryStr [key]
+  stepsList <- forM xs (\str -> return $ (read str :: [GenericAST]))
 
-  if null stepsStringList then 
+  if null stepsList then 
     return [] 
   else do 
-    let steps = read $ Text.unpack $ head stepsStringList :: [GenericAST]
-    return steps 
+    return $ head stepsList 
     -- I only case about first entry, should only be one 
 
 
@@ -116,8 +117,6 @@ handlerGetStepsFromStudent mKey =
 
       steps <- liftIO $ queryGetSteps dbConnection sKey 
       return steps
-      -- if sKey == "raa009" then 
-      --   return [ GenericAST "Num 1" [] ]
 
 
 server :: Server API
