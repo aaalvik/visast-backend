@@ -107,7 +107,7 @@ handlerPutStepsFromStudent stepsWithKey = do
 
   if rowsAffected == 1 then 
     return $ ResponseMsg "Success"
-  else return $ ResponseMsg "Failure"
+  else return $ ResponseMsg dbUrl --"Failure"
 
 
 handlerGetStepsFromStudent :: Maybe String -> Handler [GenericAST]
