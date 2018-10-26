@@ -98,8 +98,8 @@ handlerPutStepsFromStudent stepsWithKey = do
 queryGetSteps :: Connection -> String -> IO [GenericAST]
 queryGetSteps conn key = do 
   let queryStr = "SELECT Steps FROM StudentSteps WHERE Key = ?"
-  xs <- query conn queryStr [key]
-  stepsList <- forM xs (\str -> return $ (read str :: [GenericAST]))
+  xs <- query conn queryStr (Only key) :: IO [Only String]
+  stepsList <- forM xs (return . (read :: String -> [GenericAST]) . fromOnly )
 
   if null stepsList then 
     return [] 
