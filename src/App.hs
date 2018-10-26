@@ -20,6 +20,10 @@ import System.Environment (lookupEnv)
 import Data.Maybe (fromMaybe)
 import Network.Wai.Middleware.Cors
 import Network.Wai.Middleware.Servant.Options
+import Control.Monad.IO.Class
+import qualified Data.ByteString.Char8 as ByteString
+import Database.PostgreSQL.Simple
+import GHC.Int
 
 -- * API
 
@@ -64,13 +68,46 @@ handlerSteps inputStr = do
         Nothing -> []
   return $ map Convert.toGeneric steps
 
+{-
+To run IO inside Handlers, just use 'liftIO': 
+  filecontent <- liftIO (readFile "myfile.txt")
+
+Run queries (SELECT): 
+query conn "select ? + ?" (40,2)
+
+Run INSERTs:
+execute :: ToRow q => Connection -> Query -> q -> IO Int64
+-}
+
+insertSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
+insertSteps conn key steps = do 
+  let queryStr = "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?) ON CONFLICT (Key) DO UPDATE SET Steps = ?;"
+  execute conn queryStr (key :: String, show steps :: String, show steps :: String)
+
+{-
+Tabell: StudentSteps ( Key varchar(255), Steps TEXT );
+
+INSERT INTO the_table (id, column_1, column_2) 
+VALUES (1, 'A', 'X'), (2, 'B', 'Y'), (3, 'C', 'Z')
+ON CONFLICT (id) DO UPDATE 
+  SET column_1 = excluded.column_1, 
+      column_2 = excluded.column_2;
+-}
+
 
 handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
 handlerPutStepsFromStudent stepsWithKey = do
   let evSteps = evalSteps stepsWithKey
       studentKey = key stepsWithKey
-  -- TODO save in map of <key, evSteps> 
-  return $ ResponseMsg "Success"
+  dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL") -- IO String
+  dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
+
+  rowsAffected <- liftIO $ insertSteps dbConnection studentKey evSteps
+  liftIO $ close dbConnection
+
+  if rowsAffected == 1 then 
+    return $ ResponseMsg "Success"
+  else return $ ResponseMsg "Failure"
 
 
 handlerGetStepsFromStudent :: Maybe String -> Handler [GenericAST]

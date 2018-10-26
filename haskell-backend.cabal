@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 462793e18f54b361dabc0478617f7cafa1fb0f3f6b07a257ed8e5c31d44629b2
+-- hash: 5cd752c1d20837a49003f884baae3394a729ead339e54268d4c5341369e4f3af
 
 name:           haskell-backend
 version:        0.0.0
@@ -25,12 +25,16 @@ library
   build-depends:
       aeson
     , base
+    , bytestring
+    , containers
     , http-client
+    , postgresql-simple
     , servant
     , servant-client
     , servant-options
     , servant-server
     , transformers
+    , unordered-containers
     , wai
     , wai-cors
     , warp
@@ -44,13 +48,17 @@ executable haskell-backend
   build-depends:
       aeson
     , base
+    , bytestring
+    , containers
     , haskell-backend
     , http-client
+    , postgresql-simple
     , servant
     , servant-client
     , servant-options
     , servant-server
     , transformers
+    , unordered-containers
     , wai
     , wai-cors
     , warp

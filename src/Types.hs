@@ -14,7 +14,7 @@ import GHC.Generics
 data GenericAST = GenericAST {
     name :: Name,  
     children :: [GenericAST]
-} deriving (Eq, Show, Generic)
+} deriving (Eq, Show, Read, Generic)
 
 instance ToJSON GenericAST   
 instance FromJSON GenericAST 
