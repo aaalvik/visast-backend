@@ -81,8 +81,9 @@ execute :: ToRow q => Connection -> Query -> q -> IO Int64
 
 insertSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
 insertSteps conn key steps = do 
-  let queryStr = "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?) ON CONFLICT (Key) DO UPDATE SET Steps = ?;"
-  execute conn queryStr (key :: String, show steps :: String, show steps :: String)
+  let queryStr = "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?);"
+    -- "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?) ON CONFLICT (Key) DO UPDATE SET Steps = ?;"
+  execute conn queryStr (key :: String, show steps :: String)
 
 {-
 Tabell: StudentSteps ( Key varchar(255), Steps TEXT );
@@ -99,7 +100,7 @@ handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg
 handlerPutStepsFromStudent stepsWithKey = do
   let evSteps = evalSteps stepsWithKey
       studentKey = key stepsWithKey
-  dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL") -- IO String
+  dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
   dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
   rowsAffected <- liftIO $ insertSteps dbConnection studentKey evSteps
