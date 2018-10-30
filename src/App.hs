@@ -11,7 +11,6 @@ import Types
 import TestLanguage.Evaluator as Evaluator
 import TestLanguage.Parser as Parser 
 import TestLanguage.Convert as Convert 
-import TestLanguage.TestTypes as TestTypes (Expr)
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant
@@ -24,7 +23,7 @@ import Control.Monad.IO.Class
 import qualified Data.ByteString.Char8 as ByteString
 import Database.PostgreSQL.Simple
 import GHC.Int
-import qualified Data.Text as Text
+
 import Control.Monad
 
 -- * API
@@ -72,12 +71,28 @@ handlerSteps inputStr = do
 
 {- Tabell: StudentSteps ( Key varchar(255), Steps TEXT ); -}
 
+queryDoesKeyExist :: Connection -> String -> IO Bool 
+queryDoesKeyExist conn key = do 
+  let queryStr = "SELECT COUNT(*) FROM StudentSteps WHERE Key = ?"
+
+  [Only bool] <- query conn queryStr (Only key) :: IO [Only Int64]
+  if bool == 0 then 
+    return False 
+  else return True 
+  
 
 queryInsertSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
 queryInsertSteps conn key steps = do 
-  let queryStr = "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?);"
-    -- "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?) ON CONFLICT (Key) DO UPDATE SET Steps = ?;"
-  execute conn queryStr (key :: String, show steps :: String)
+  -- Check if key exists already
+  keyExists <- queryDoesKeyExist conn key 
+
+  let queryStr = if keyExists 
+        then "UPDATE StudentSteps SET Steps = ? WHERE Key = ?;"
+        else "INSERT INTO StudentSteps (Key, Steps) VALUES (?, ?);"
+
+  if keyExists 
+    then execute conn queryStr (show steps :: String, key :: String)
+    else execute conn queryStr (key :: String, show steps :: String)
 
 
 handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
