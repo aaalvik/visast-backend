@@ -75,8 +75,8 @@ queryDoesKeyExist :: Connection -> String -> IO Bool
 queryDoesKeyExist conn key = do 
   let queryStr = "SELECT COUNT(*) FROM StudentSteps WHERE Key = ?"
 
-  [Only bool] <- query conn queryStr (Only key) :: IO [Only Int64]
-  if bool == 0 then 
+  [Only num] <- query conn queryStr (Only key) :: IO [Only Int64]
+  if num == 0 then 
     return False 
   else return True 
   
@@ -107,7 +107,7 @@ handlerPutStepsFromStudent stepsWithKey = do
 
   if rowsAffected == 1 then 
     return $ ResponseMsg "Success"
-  else return $ ResponseMsg dbUrl --"Failure"
+  else return $ ResponseMsg "Failure"
 
 
 queryGetSteps :: Connection -> String -> IO [GenericAST]
