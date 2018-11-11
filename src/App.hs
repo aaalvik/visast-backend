@@ -61,6 +61,9 @@ mkApp =
 
 handlerSteps :: InputString -> Handler [GenericAST]
 handlerSteps inputStr = do
+  -- Logging 
+  liftIO $ putStrLn "Requested steps in easy mode"
+  
   let s = str inputStr 
       mStartExpr = Parser.parse s
       steps = case mStartExpr of 
@@ -99,13 +102,17 @@ handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg
 handlerPutStepsFromStudent stepsWithKey = do
   let evSteps = evalSteps stepsWithKey
       studentKey = key stepsWithKey
+  
+  -- Logging 
+  liftIO $ putStrLn $ "Student (" ++ studentKey ++ ") called visualise"
+
   dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
   dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
   rowsAffected <- liftIO $ queryInsertSteps dbConnection studentKey evSteps
   liftIO $ close dbConnection
 
-  if rowsAffected == 1 then 
+  if rowsAffected == 1 then
     return $ ResponseMsg "Success"
   else return $ ResponseMsg "Failure"
 
@@ -120,14 +127,18 @@ queryGetSteps conn key = do
     return [] 
   else do 
     return $ head stepsList 
-    -- I only case about first entry, should only be one 
+    -- I only care about first entry, should only be one 
 
 
 handlerGetStepsFromStudent :: Maybe String -> Handler [GenericAST]
-handlerGetStepsFromStudent mKey = 
+handlerGetStepsFromStudent mKey =
   case mKey of 
     Nothing -> return []
     Just sKey -> do 
+      -- Logging 
+      liftIO $ putStrLn $ "Student (" ++ sKey ++ ") requested saved steps"
+
+
       dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
       dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
