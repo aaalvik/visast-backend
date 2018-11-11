@@ -63,7 +63,6 @@ handlerSteps :: InputString -> Handler [GenericAST]
 handlerSteps inputStr = do
   -- Logging 
   liftIO $ hPutStrLn stderr "Requested steps in easy mode"
-
   let s = str inputStr 
       mStartExpr = Parser.parse s
       steps = case mStartExpr of 
