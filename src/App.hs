@@ -62,8 +62,8 @@ mkApp =
 handlerSteps :: InputString -> Handler [GenericAST]
 handlerSteps inputStr = do
   -- Logging 
-  liftIO $ putStrLn "Requested steps in easy mode"
-  
+  liftIO $ hPutStrLn stderr "Requested steps in easy mode"
+
   let s = str inputStr 
       mStartExpr = Parser.parse s
       steps = case mStartExpr of 
@@ -104,7 +104,7 @@ handlerPutStepsFromStudent stepsWithKey = do
       studentKey = key stepsWithKey
   
   -- Logging 
-  liftIO $ putStrLn $ "Student (" ++ studentKey ++ ") called visualise"
+  liftIO $ hPutStrLn stderr $ "Student (" ++ studentKey ++ ") called visualise"
 
   dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
   dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
@@ -136,7 +136,7 @@ handlerGetStepsFromStudent mKey =
     Nothing -> return []
     Just sKey -> do 
       -- Logging 
-      liftIO $ putStrLn $ "Student (" ++ sKey ++ ") requested saved steps"
+      liftIO $ hPutStrLn stderr $ "Student (" ++ sKey ++ ") requested saved steps"
 
 
       dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
