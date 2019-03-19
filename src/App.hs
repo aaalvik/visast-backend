@@ -29,7 +29,7 @@ import Control.Monad
 -- * API
 
 type API = "easy" :> ReqBody '[JSON] InputString :> Post '[JSON] [GenericAST]
-      :<|> "advanced" :> ReqBody '[JSON] StepsWithKey :> Post '[JSON] ResponseMsg
+      :<|> "advanced" :> QueryParam "studentKey" String :> ReqBody '[JSON] Steps :> Put '[JSON] ResponseMsg
       :<|> "advanced" :> QueryParam "studentKey" String :> Get '[JSON] [GenericAST]
   
 
@@ -55,7 +55,7 @@ mkApp =
   where 
     policy = simpleCorsResourcePolicy 
               { corsRequestHeaders = [ "content-type", "Access-Control-Allow-Origin" ] 
-              , corsMethods = [ "GET", "POST"]
+              , corsMethods = [ "GET", "POST", "PUT"]
               }
 
 
@@ -97,23 +97,24 @@ queryPutSteps conn key steps = do
     else execute conn queryStr (key :: String, show steps :: String)
 
 
-handlerAdvancedPut :: StepsWithKey -> Handler ResponseMsg 
-handlerAdvancedPut stepsWithKey = do
-  let evSteps = evalSteps stepsWithKey
-      studentKey = key stepsWithKey
-  
-  -- Logging 
-  liftIO $ hPutStrLn stderr $ "Student (" ++ studentKey ++ ") called visualise"
+handlerAdvancedPut :: Maybe String -> Steps -> Handler ResponseMsg 
+handlerAdvancedPut mKey steps =
+  case mKey of 
+    Nothing -> return $ ResponseMsg "Failure"
+    Just studentKey -> do
+      let evSteps = evalSteps steps
+      -- Logging 
+      liftIO $ hPutStrLn stderr $ "Student (" ++ studentKey ++ ") called visualise"
 
-  dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
-  dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
+      dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
+      dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
-  rowsAffected <- liftIO $ queryPutSteps dbConnection studentKey evSteps
-  liftIO $ close dbConnection
+      rowsAffected <- liftIO $ queryPutSteps dbConnection studentKey evSteps
+      liftIO $ close dbConnection
 
-  if rowsAffected == 1 then
-    return $ ResponseMsg "Success"
-  else return $ ResponseMsg "Failure"
+      if rowsAffected == 1 then
+        return $ ResponseMsg "Success"
+      else return $ ResponseMsg "Failure"
 
 
 queryGetSteps :: Connection -> String -> IO [GenericAST]
