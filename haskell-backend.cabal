@@ -1,13 +1,14 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d059af4ea502d1bc717b34001be34886c099e5d3b00cf92ac8e4c53affee3015
+-- hash: ad740967ead141ccfba5a3c7fbc080830bc9713aa2ef3eb17fa48cc4de31d65e
 
 name:           haskell-backend
 version:        0.0.0
 build-type:     Simple
-cabal-version:  >= 1.10
 
 library
   exposed-modules:

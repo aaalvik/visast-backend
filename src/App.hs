@@ -28,9 +28,9 @@ import Control.Monad
 
 -- * API
 
-type API = "steps" :> ReqBody '[JSON] InputString :> Post '[JSON] [GenericAST]
-      :<|> "putStepsFromStudent" :> ReqBody '[JSON] StepsWithKey :> Post '[JSON] ResponseMsg
-      :<|> "getStepsFromStudent" :> QueryParam "studentKey" String :> Get '[JSON] [GenericAST]
+type API = "easy" :> ReqBody '[JSON] InputString :> Post '[JSON] [GenericAST]
+      :<|> "advanced" :> ReqBody '[JSON] StepsWithKey :> Post '[JSON] ResponseMsg
+      :<|> "advanced" :> QueryParam "studentKey" String :> Get '[JSON] [GenericAST]
   
 
 -- * APP
@@ -59,8 +59,8 @@ mkApp =
               }
 
 
-handlerSteps :: InputString -> Handler [GenericAST]
-handlerSteps inputStr = do
+handlerEasy :: InputString -> Handler [GenericAST]
+handlerEasy inputStr = do
   -- Logging 
   liftIO $ hPutStrLn stderr "Requested steps in easy mode"
   let s = str inputStr 
@@ -83,8 +83,8 @@ queryDoesKeyExist conn key = do
   else return True 
   
 
-queryInsertSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
-queryInsertSteps conn key steps = do 
+queryPutSteps :: Connection -> String -> [GenericAST] -> IO GHC.Int.Int64
+queryPutSteps conn key steps = do 
   -- Check if key exists already
   keyExists <- queryDoesKeyExist conn key 
 
@@ -97,8 +97,8 @@ queryInsertSteps conn key steps = do
     else execute conn queryStr (key :: String, show steps :: String)
 
 
-handlerPutStepsFromStudent :: StepsWithKey -> Handler ResponseMsg 
-handlerPutStepsFromStudent stepsWithKey = do
+handlerAdvancedPut :: StepsWithKey -> Handler ResponseMsg 
+handlerAdvancedPut stepsWithKey = do
   let evSteps = evalSteps stepsWithKey
       studentKey = key stepsWithKey
   
@@ -108,7 +108,7 @@ handlerPutStepsFromStudent stepsWithKey = do
   dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
   dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
-  rowsAffected <- liftIO $ queryInsertSteps dbConnection studentKey evSteps
+  rowsAffected <- liftIO $ queryPutSteps dbConnection studentKey evSteps
   liftIO $ close dbConnection
 
   if rowsAffected == 1 then
@@ -129,14 +129,14 @@ queryGetSteps conn key = do
     -- I only care about first entry, should only be one 
 
 
-handlerGetStepsFromStudent :: Maybe String -> Handler [GenericAST]
-handlerGetStepsFromStudent mKey =
+handlerAdvancedGet :: Maybe String -> Handler [GenericAST]
+handlerAdvancedGet mKey =
   case mKey of 
     Nothing -> return []
     Just sKey -> do 
       -- Logging 
       liftIO $ hPutStrLn stderr $ "Student (" ++ sKey ++ ") requested saved steps"
-
+      
 
       dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
       dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
@@ -146,4 +146,4 @@ handlerGetStepsFromStudent mKey =
 
 
 server :: Server API
-server = handlerSteps :<|> handlerPutStepsFromStudent :<|> handlerGetStepsFromStudent 
+server = handlerEasy :<|> handlerAdvancedPut :<|> handlerAdvancedGet 
