@@ -1,19 +1,5 @@
-To build, do: 
+# Backend of visAST
+This project was part of my master thesis at University of Bergen, where I developed the tool visAST and examined the usefulness of the tool when used in teaching. This repository contains the backend of the project, a Haskell server. The frontend can be found here: [visAST frontend](https://github.com/aaalvik/visast-frontend).
 
-``` 
-stack build
-```
-
-To run the app, do:
-
-``` bash
-stack exec example-servant-minimal
-```
-
-Then you can query the server like this:
-
-``` bash
-curl localhost:3000/item
-
-curl -X POST -d '{"name":"Add", "children":[{"name":"Leaf", "children":[]}]}' -H 'Accept: application/json' -H 'Content-type: application/json' http://localhost:3000/step
-```
+## visAST
+visAST is a visualisation tool for visualising abstract syntax trees (ASTs). The tool is used to visualise expressions of a given grammar, represented as ASTs. The tool can also visualise the evaluation steps produced by a small-step evaluator.
