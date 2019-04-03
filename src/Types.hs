@@ -20,15 +20,6 @@ instance ToJSON GenericAST
 instance FromJSON GenericAST 
 
 
--- data StepsWithKey = StepsWithKey { 
---     evalSteps :: [GenericAST], 
---     key :: String 
--- } deriving (Show, Generic)
-
--- instance ToJSON StepsWithKey
--- instance FromJSON StepsWithKey
-
-
 data Steps = Steps { 
     evalSteps :: [GenericAST]
 } deriving (Show, Generic)
