@@ -74,4 +74,4 @@ parseExpr ("if":xs) =
                 else (Nothing, [])
             _ -> (Nothing, [])
 
-parseExpr e = (Nothing, [])
+parseExpr _ = (Nothing, [])

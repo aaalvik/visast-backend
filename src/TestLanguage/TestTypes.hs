@@ -1,4 +1,9 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module TestLanguage.TestTypes where 
+
+import GHC.Generics
+import GenericAST
 
 data Expr 
     = Num Int 
@@ -6,6 +11,6 @@ data Expr
     | Mult Expr Expr 
     | Neg Expr 
     | If Expr Expr Expr 
-    -- | Let Char Expr Expr
-    -- | Var Char deriving
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic)
+
+instance Generalise Expr 

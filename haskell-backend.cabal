@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ad740967ead141ccfba5a3c7fbc080830bc9713aa2ef3eb17fa48cc4de31d65e
+-- hash: a0f7c2e8de8d85170629d58379315813b973e3c398110298f8dd234a97ccf131
 
 name:           haskell-backend
 version:        0.0.0
@@ -13,7 +13,7 @@ build-type:     Simple
 library
   exposed-modules:
       App
-      TestLanguage.Convert
+      GenericAST
       TestLanguage.Evaluator
       TestLanguage.Parser
       TestLanguage.TestTypes

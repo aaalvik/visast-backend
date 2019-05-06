@@ -10,7 +10,6 @@ module App where
 import Types 
 import TestLanguage.Evaluator as Evaluator
 import TestLanguage.Parser as Parser 
-import TestLanguage.Convert as Convert 
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant
@@ -23,7 +22,7 @@ import Control.Monad.IO.Class
 import qualified Data.ByteString.Char8 as ByteString
 import Database.PostgreSQL.Simple
 import GHC.Int
-
+import GenericAST
 import Control.Monad
 
 -- * API
@@ -69,9 +68,8 @@ handlerEasy inputStr = do
         Just expr -> 
           Evaluator.eval expr
         Nothing -> []
-  return $ map Convert.toGeneric steps
+  return $ map toGeneric steps
 
-{- Tabell: StudentSteps ( Key varchar(255), Steps TEXT ); -}
 
 queryDoesKeyExist :: Connection -> String -> IO Bool 
 queryDoesKeyExist conn key = do 
