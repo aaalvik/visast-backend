@@ -28,8 +28,8 @@ import Control.Monad
 -- * API
 
 type API = "easy" :> ReqBody '[JSON] InputString :> Post '[JSON] [GenericAST]
-      :<|> "advanced" :> Capture "studentKey" String :> ReqBody '[JSON] Steps :> Put '[JSON] ResponseMsg
-      :<|> "advanced" :> QueryParam "studentKey" String :> Get '[JSON] [GenericAST]
+      :<|> "advanced" :> Capture "lookupKey" String :> ReqBody '[JSON] Steps :> Put '[JSON] ResponseMsg
+      :<|> "advanced" :> QueryParam "lookupKey" String :> Get '[JSON] [GenericAST]
   
 
 -- * APP
@@ -96,15 +96,15 @@ queryPutSteps conn key steps = do
 
 
 handlerAdvancedPut :: String -> Steps -> Handler ResponseMsg 
-handlerAdvancedPut studentKey steps = do
+handlerAdvancedPut lookupKey steps = do
   let evSteps = evalSteps steps
   -- Logging 
-  liftIO $ hPutStrLn stderr $ "Student (" ++ studentKey ++ ") called visualise"
+  liftIO $ hPutStrLn stderr $ "User (" ++ lookupKey ++ ") called visualise"
 
   dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
   dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
-  rowsAffected <- liftIO $ queryPutSteps dbConnection studentKey evSteps
+  rowsAffected <- liftIO $ queryPutSteps dbConnection lookupKey evSteps
   liftIO $ close dbConnection
 
   if rowsAffected == 1 then
@@ -129,15 +129,15 @@ handlerAdvancedGet :: Maybe String -> Handler [GenericAST]
 handlerAdvancedGet mKey =
   case mKey of 
     Nothing -> return []
-    Just sKey -> do 
+    Just lookupKey -> do 
       -- Logging 
-      liftIO $ hPutStrLn stderr $ "Student (" ++ sKey ++ ") requested saved steps"
+      liftIO $ hPutStrLn stderr $ "User (" ++ lookupKey ++ ") requested saved steps"
       
 
       dbUrl <- liftIO $ fmap (fromMaybe "") (lookupEnv "DATABASE_URL")
       dbConnection <- liftIO $ connectPostgreSQL $ ByteString.pack dbUrl 
 
-      steps <- liftIO $ queryGetSteps dbConnection sKey 
+      steps <- liftIO $ queryGetSteps dbConnection lookupKey 
       return steps
 
 
